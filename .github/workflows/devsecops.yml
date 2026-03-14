@@ -1,65 +1,78 @@
-name: DevSecOps AI pipeline
+name: DevSecOps AI Pipeline
 
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   security-check:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
-      
-      - name: Start Containers
+
+      # 2. Verify docker installation
+      - name: Check Docker version
+        run: docker --version
+
+      # 3. Start Docker Compose services
+      - name: Start containers
         run: docker compose up -d --build
 
-      - name: Show containers
+      # 4. Show running containers (debug)
+      - name: Show running containers
         run: docker ps -a
 
+      # 5. Show container logs (debug)
       - name: Show API logs
-        run: docker compose logs api
+        run: docker compose logs api || true
 
       - name: Show OPA logs
-        run: docker compose logs opa
-      
-      - name: Wait for API
+        run: docker compose logs opa || true
+
+      # 6. Wait until FastAPI becomes available
+      - name: Wait for FastAPI to start
         run: |
           echo "Waiting for FastAPI..."
-          for i in {1..20}; do
+          for i in {1..30}; do
             if curl -s http://localhost:8000/docs > /dev/null; then
-              echo "API is ready!"
+              echo "FastAPI is ready!"
               break
             fi
-            echo "Still waiting..."
+            echo "API not ready yet..."
             sleep 5
           done
 
+      # 7. Run AI + OPA deployment check
       - name: Run AI + OPA check
         run: |
-          docker compose exec -T api curl -X POST http://localhost:8000/check-deployment \
-            -H "Content-Type: application/json" \
-            -d '{
-              "environment":"prod",
-              "public_exposure":1,
-              "privilege_level":2,
-              "encryption_disabled":1,
-              "port_risk":2,
-              "history_incidents":4,
-              "mitre_tactic_score":4
-            }' > result.json
-      
+          curl -X POST http://localhost:8000/check-deployment \
+          -H "Content-Type: application/json" \
+          -d '{
+            "environment":"prod",
+            "public_exposure":1,
+            "privilege_level":2,
+            "encryption_disabled":1,
+            "port_risk":2,
+            "history_incidents":4,
+            "mitre_tactic_score":4
+          }' > result.json
+
+      # 8. Print result
+      - name: Show decision
+        run: cat result.json
+
+      # 9. Block deployment if risk is high
       - name: Validate decision
         run: |
-          cat result.json
           if grep -q "BLOCK" result.json; then
-            echo "Deployment blocked by security gate"
+            echo "Deployment blocked by AI + OPA security gate"
             exit 1
           fi
 
+      # 10. Deployment step (demo placeholder)
       - name: Deploy
         run: echo "Deployment allowed"
 
-      
