@@ -31,19 +31,19 @@ jobs:
             sleep 5
           done
 
-      - name: Run API + OPA check
+      - name: Run AI + OPA check
         run: |
-          curl -X POST http://localhost:8000/check-deployment \
-          -H "Content-Type: application/json" \
-          -d '{
-            "environment":"prod",
-            "public_exposure":1,
-            "privilege_level":2,
-            "encryption_disabled":1,
-            "port_risk":2,
-            "history_incidents":4,
-            "mitre_tactic_score":4
-          }' > result.json
+          docker exec devsecops-api curl -X POST http://localhost:8000/check-deployment \
+            -H "Content-Type: application/json" \
+            -d '{
+              "environment":"prod",
+              "public_exposure":1,
+              "privilege_level":2,
+              "encryption_disabled":1,
+              "port_risk":2,
+              "history_incidents":4,
+              "mitre_tactic_score":4
+            }' > result.json
       
       - name: Validate decision
         run: |
