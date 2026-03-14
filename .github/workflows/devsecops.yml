@@ -3,7 +3,7 @@ name: DevSecOps AI pipeline
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   security-check:
