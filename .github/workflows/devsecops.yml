@@ -19,8 +19,17 @@ jobs:
       - name: Show running containers
         run: docker ps  
       
-      - name: Wait for api
-        run: sleep 50
+      - name: Wait for API
+        run: |
+          echo "Waiting for FastAPI..."
+          for i in {1..20}; do
+            if curl -s http://localhost:8000/docs > /dev/null; then
+              echo "API is ready!"
+              break
+            fi
+            echo "Still waiting..."
+            sleep 5
+          done
 
       - name: Run API + OPA check
         run: |
