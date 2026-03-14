@@ -1,0 +1,47 @@
+name: DevSecOps AI pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  security-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      
+      - name: Start Containers
+        run: docker-compose up -d --build
+      
+      - name: Wait for api
+        run: sleep 20
+
+      - name: Run API + OPA check
+        run: |
+          curl -X POST http://localhost:8000/check-deployment \
+          -H "Content-Type: application/json" \
+          -d '{
+            "environment":"prod",
+            "public_exposure":1,
+            "privilege_level":2,
+            "encryption_disabled":1,
+            "port_risk":2,
+            "history_incidents":4,
+            "mitre_tactic_score":4
+          }' > result.json
+      
+      - name: Validate decision
+        run: |
+          cat result.json
+          if grep -q "BLOCK" result.json; then
+            echo "Deployment blocked by security gate"
+            exit 1
+          fi
+
+      - name: Deploy
+        run: echo "Deployment allowed"
+
+      

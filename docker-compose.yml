@@ -1,0 +1,18 @@
+services:
+
+  api:
+    build: .
+    container_name: devsecops-api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - opa
+
+  opa:
+    image: openpolicyagent/opa:latest
+    container_name: devsecops-opa
+    command: ["run", "--server", "--addr=0.0.0.0:8181", "/policy/policy.rego"]
+    volumes:
+      - ./policy.rego:/policy/policy.rego
+    ports:
+      - "8181:8181"

@@ -1,0 +1,6 @@
+{
+  "input": {
+    "environment": "prod",
+    "public_exposure": 1
+  }
+}

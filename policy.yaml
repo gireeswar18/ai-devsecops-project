@@ -1,0 +1,11 @@
+rules:
+  - name: Block Public Exposure in Production
+    condition:
+      environment: 2
+      public_exposure: 1
+    action: BLOCK
+
+  - name: Block Critical MITRE Score
+    condition:
+      mitre_tactic_score: 5
+    action: BLOCK
