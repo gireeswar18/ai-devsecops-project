@@ -6,49 +6,26 @@ on:
       - master
 
 jobs:
-  security-check:
+  security-gate:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Verify docker installation
-      - name: Check Docker version
-        run: docker --version
-
-      # 3. Start Docker Compose services
+      # 2. Start Docker services
       - name: Start containers
         run: docker compose up -d --build
 
-      # 4. Show running containers (debug)
-      - name: Show running containers
-        run: docker ps -a
+      # 3. Wait for API to start
+      - name: Wait for API
+        run: sleep 20
 
-      # 5. Show container logs (debug)
-      - name: Show API logs
-        run: docker compose logs api || true
-
-      - name: Show OPA logs
-        run: docker compose logs opa || true
-
-      # 6. Wait until FastAPI becomes available
-      - name: Wait for FastAPI to start
+      # 4. Run AI + OPA deployment check
+      - name: Security check
         run: |
-          echo "Waiting for FastAPI..."
-          for i in {1..30}; do
-            if curl -s http://localhost:8000/docs > /dev/null; then
-              echo "FastAPI is ready!"
-              break
-            fi
-            echo "API not ready yet..."
-            sleep 5
-          done
-
-      # 7. Run AI + OPA deployment check
-      - name: Run AI + OPA check
-        run: |
-          curl -X POST http://localhost:8000/check-deployment \
+          curl -X POST http://127.0.0.1:8000/check-deployment \
           -H "Content-Type: application/json" \
           -d '{
             "environment":"prod",
@@ -60,19 +37,18 @@ jobs:
             "mitre_tactic_score":4
           }' > result.json
 
-      # 8. Print result
+      # 5. Print decision
       - name: Show decision
         run: cat result.json
 
-      # 9. Block deployment if risk is high
+      # 6. Block deployment if risk is high
       - name: Validate decision
         run: |
           if grep -q "BLOCK" result.json; then
-            echo "Deployment blocked by AI + OPA security gate"
+            echo "Deployment blocked by security gate"
             exit 1
           fi
 
-      # 10. Deployment step (demo placeholder)
+      # 7. Deployment stage
       - name: Deploy
         run: echo "Deployment allowed"
-
