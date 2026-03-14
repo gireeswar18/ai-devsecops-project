@@ -33,7 +33,7 @@ jobs:
 
       - name: Run AI + OPA check
         run: |
-          docker exec devsecops-api curl -X POST http://localhost:8000/check-deployment \
+          docker compose exec -T api curl -X POST http://localhost:8000/check-deployment \
             -H "Content-Type: application/json" \
             -d '{
               "environment":"prod",
