@@ -16,8 +16,14 @@ jobs:
       - name: Start Containers
         run: docker compose up -d --build
 
-      - name: Show running containers
-        run: docker ps  
+      - name: Show containers
+        run: docker ps -a
+
+      - name: Show API logs
+        run: docker compose logs api
+
+      - name: Show OPA logs
+        run: docker compose logs opa
       
       - name: Wait for API
         run: |
