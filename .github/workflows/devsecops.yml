@@ -15,9 +15,12 @@ jobs:
       
       - name: Start Containers
         run: docker compose up -d --build
+
+      - name: Show running containers
+        run: docker ps  
       
       - name: Wait for api
-        run: sleep 20
+        run: sleep 50
 
       - name: Run API + OPA check
         run: |
