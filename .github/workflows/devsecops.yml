@@ -27,6 +27,11 @@ jobs:
             sleep 5
           done
 
+      # 3b. Show container logs (always, for debugging)
+      - name: Show container logs
+        if: always()
+        run: docker compose logs
+
       # 4. Run AI + OPA deployment check
       - name: Security check
         run: |

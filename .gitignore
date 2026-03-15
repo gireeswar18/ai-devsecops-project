@@ -26,9 +26,15 @@ dist/
 
 # -----------------------------
 
-data/
+# Allow the trained model and source data needed by CI
+!data/trained_model.pkl
+!data/important_attack_patterns_scored.csv
+
+# Exclude generated/intermediate data files
+data/synthetic_data.csv
+data/feature_engineered_dataset.csv
 *.joblib
-*.csv
+
 
 # -----------------------------
 
